@@ -2,25 +2,26 @@ replicaCount: 1
 strategyType: Recreate
 
 image:
-  repository: quay.io/external_storage/nfs-client-provisioner
-  tag: v3.1.0-k8s1.11
-  pullPolicy: IfNotPresent
+  repository: docker.sunnywith.com/external_storage/nfs-client-provisioner
+  tag: "21.01.17"
+  pullPolicy: Always
 
 nfs:
   server:
   path: /nfs-storage
   mountOptions:
+  - vers=4.1
 
 # For creating the StorageClass automatically:
 storageClass:
   create: true
 
   # Set a provisioner name. If unset, a name will be generated.
-  # provisionerName:
+  provisionerName: nfs-provisioner
 
   # Set StorageClass as the default StorageClass
   # Ignored if storageClass.create is false
-  defaultClass: false
+  defaultClass: true
 
   # Set a StorageClass name
   # Ignored if storageClass.create is false
@@ -31,6 +32,14 @@ storageClass:
 
   # Method used to reclaim an obsoleted volume
   reclaimPolicy: Delete
+
+  # Custom nfs child path
+  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+
+  # When set to Retain your PVs will retain by the provisioner upon deletion of the PVC.
+  # When set to Delete your PVs will delete by the provisioner upon deletion of the PVC.
+  # When set to "" your PVs will skip to 'archiveOnDelete' by the provisioner upon deletion of the PVC.
+  onDelete: Retain
 
   # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
   archiveOnDelete: true

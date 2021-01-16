@@ -26,6 +26,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -82,12 +83,12 @@ func (p *nfsProvisioner) Provision(ctx context.Context, options controller.Provi
 	if options.PVC.Spec.Selector != nil {
 		return nil, controller.ProvisioningFinished, fmt.Errorf("claim Selector is not supported")
 	}
-	glog.V(4).Infof("nfs provisioner: VolumeOptions %v", options)
+	glog.V(5).Infof("nfs provisioner: VolumeOptions %v", options)
 
 	pvcNamespace := options.PVC.Namespace
 	pvcName := options.PVC.Name
 
-	pvName := strings.Join([]string{pvcNamespace, pvcName, options.PVName}, "-")
+	pvName := strings.Join([]string{pvcNamespace, pvcName}, "-")
 
 	metadata := &pvcMetadata{
 		data: map[string]string{
@@ -116,7 +117,7 @@ func (p *nfsProvisioner) Provision(ctx context.Context, options controller.Provi
 
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: options.PVName,
+			Name: pvName,
 		},
 		Spec: v1.PersistentVolumeSpec{
 			PersistentVolumeReclaimPolicy: *options.StorageClass.ReclaimPolicy,
@@ -138,6 +139,7 @@ func (p *nfsProvisioner) Provision(ctx context.Context, options controller.Provi
 }
 
 func (p *nfsProvisioner) Delete(ctx context.Context, volume *v1.PersistentVolume) error {
+	glog.V(5).Infof("volume PersistentVolume: volume %v", volume)
 	path := volume.Spec.PersistentVolumeSource.NFS.Path
 	relativePath := strings.Replace(path, p.path, "", 1)
 	oldPath := filepath.Join(mountPath, relativePath)
@@ -158,10 +160,12 @@ func (p *nfsProvisioner) Delete(ctx context.Context, volume *v1.PersistentVolume
 	onDelete := storageClass.Parameters["onDelete"]
 	switch onDelete {
 
-	case "delete":
+	case "Delete":
+		glog.V(4).Infof("delete path %s", oldPath)
 		return os.RemoveAll(oldPath)
 
-	case "retain":
+	case "Retain":
+		glog.V(4).Infof("retain path %s", oldPath)
 		return nil
 	}
 
@@ -179,7 +183,9 @@ func (p *nfsProvisioner) Delete(ctx context.Context, volume *v1.PersistentVolume
 		}
 	}
 
-	archivePath := filepath.Join(mountPath, "archived-"+volume.Name)
+	namespace := volume.Spec.ClaimRef.Namespace
+	archiveName := volume.Spec.ClaimRef.Name + "-archived-" + strconv.FormatInt(time.Now().Unix(), 10)
+	archivePath := filepath.Join(mountPath, namespace, archiveName)
 	glog.V(4).Infof("archiving path %s to %s", oldPath, archivePath)
 	return os.Rename(oldPath, archivePath)
 }

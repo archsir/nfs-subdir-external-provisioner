@@ -45,6 +45,8 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "-v=4"
           volumeMounts:
             - name: nfs-subdir-external-provisioner-root
               mountPath: /persistentvolumes

@@ -16,6 +16,8 @@ provisioner: {{ template "nfs-subdir-external-provisioner.provisionerName" . }}
 allowVolumeExpansion: {{ .Values.storageClass.allowVolumeExpansion }}
 reclaimPolicy: {{ .Values.storageClass.reclaimPolicy }}
 parameters:
+  pathPattern: "{{ .Values.storageClass.pathPattern }}"
+  onDelete: {{ .Values.storageClass.onDelete }}
   archiveOnDelete: "{{ .Values.storageClass.archiveOnDelete }}"
 {{- if .Values.nfs.mountOptions }}
 mountOptions:

@@ -33,7 +33,7 @@ Create chart name and version as used by the chart label.
 
 {{- define "nfs-subdir-external-provisioner.provisionerName" -}}
 {{- if .Values.storageClass.provisionerName -}}
-{{- printf .Values.storageClass.provisionerName -}}
+kubernetes.external/{{ .Values.storageClass.provisionerName }}
 {{- else -}}
 cluster.local/{{ template "nfs-subdir-external-provisioner.fullname" . -}}
 {{- end -}}
@@ -58,5 +58,16 @@ Return the appropriate apiVersion for podSecurityPolicy.
 {{- print "policy/v1beta1" -}}
 {{- else -}}
 {{- print "extensions/v1beta1" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the appropriate apiGroup for podSecurityPolicy.
+*/}}
+{{- define "podSecurityPolicy.apiGroup" -}}
+{{- if semverCompare ">=1.10-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- print "policy" -}}
+{{- else -}}
+{{- print "extensions" -}}
 {{- end -}}
 {{- end -}}

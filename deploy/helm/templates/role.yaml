@@ -13,9 +13,9 @@ rules:
     resources: ["endpoints"]
     verbs: ["get", "list", "watch", "create", "update", "patch"]
 {{- if .Values.podSecurityPolicy.enabled }}
-  - apiGroups:      ['extensions']
+  - apiGroups:      ['{{ template "podSecurityPolicy.apiGroup" . }}']
     resources:      ['podsecuritypolicies']
     verbs:          ['use']
-    resourceNames:  [{{ template "nfs-subdir-external-provisioner.fullname" . }}]
+    resourceNames:  ['{{ template "nfs-subdir-external-provisioner.fullname" . }}']
 {{- end }}
 {{- end }}

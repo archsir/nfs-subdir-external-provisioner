@@ -1,5 +1,7 @@
 # Kubernetes NFS-Client Provisioner
 
+> Kubernetes Version > 1.20.0, Please configure [this](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/issues/25) beforehand
+
 NFS subdir external provisioner is an automatic provisioner that use your _existing and already configured_ NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims. Persistent volumes are provisioned as `${namespace}-${pvcName}-${pvName}`.
 
 Note: This repository is being migrated from https://github.com/kubernetes-incubator/external-storage/tree/master/nfs-client. Some of the following instructions will be updated once the migration is completed. To test container image built from this repository, you will have to build and push the nfs-client-provisioner image using the following instructions.
@@ -7,10 +9,22 @@ Note: This repository is being migrated from https://github.com/kubernetes-incub
 ```sh
 make build
 make container
-# `nfs-subdir-external-provisioner:latest` will be created. 
+# `nfs-subdir-external-provisioner:latest` will be created.
 # To upload this to your customer registry, say `quay.io/myorg`, you can use
 # docker tag nfs-subdir-external-provisioner:latest quay.io/myorg/nfs-subdir-external-provisioner:latest
 # docker push quay.io/myorg/nfs-subdir-external-provisioner:latest
+```
+
+Build locally **(add by me, and please refer to the commit for other changes)**
+
+```sh
+# docker login <your-repo-url> -u <username> -p <password>
+sed -i -e 's@snapshots.docker.sunnywith.com@<your-repo-url>@g' \
+       -e 's@21.01.17@<your-tag>@g' \
+       -e 's@linux/amd64@<your-platform>@g' ./localbuild.sh
+sh ./localbuild.sh
+# When build is done, you can pull the image in other places by this command:
+# docker pull <your-repo-url>/external_storage/nfs-client-provisioner:<your-tag>
 ```
 
 ## How to deploy nfs-client to your cluster
